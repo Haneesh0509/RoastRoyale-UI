@@ -4,9 +4,9 @@ import idleImage from "./assets/idle-1.jpeg";
 import listenImage from "./assets/listen-1.jpeg";
 import thinkImage from "./assets/think-1.jpeg";
 import roastImage from "./assets/roast-1.jpeg";
+import { FaPaperPlane, FaMicrophone, FaWindowMinimize, FaPhoneAlt } from "react-icons/fa";
 import "./App.css";
 
-// Check if the browser supports Speech Recognition
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 function App() {
@@ -14,59 +14,47 @@ function App() {
     const [userMessage, setUserMessage] = useState("");
     const [botState, setBotState] = useState("idle");
     const [isMinimized, setIsMinimized] = useState(false);
-    const [isListening, setIsListening] = useState(false); // Track if speech is being captured
-    const [autoSpeakEnabled, setAutoSpeakEnabled] = useState(false); // Track if Auto Speak is on
+    const [isListening, setIsListening] = useState(false);
+    const [autoSpeakEnabled, setAutoSpeakEnabled] = useState(false);
     const [voices, setVoices] = useState([]);
     const [selectedVoice, setSelectedVoice] = useState(null);
 
-    const chatBoxRef = useRef(null); // Reference for the chat box
+    const chatBoxRef = useRef(null);
     const recognition = new SpeechRecognition();
-    recognition.continuous = false; // Set continuous to false to stop listening after a sentence
-    recognition.lang = "en-US"; // Set the language to English
-    recognition.interimResults = false; // Don't show results while listening
-    recognition.maxAlternatives = 1; // Limit the results to the best alternative
+    recognition.continuous = false;
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-    // Get available voices
     useEffect(() => {
         const loadVoices = () => {
             const availableVoices = speechSynthesis.getVoices();
             setVoices(availableVoices);
-            setSelectedVoice(availableVoices.find(voice => voice.lang === "en-US"));
+            setSelectedVoice(availableVoices.find((voice) => voice.lang === "en-US"));
         };
-
         loadVoices();
-
-        // Reload voices on voice change
         speechSynthesis.onvoiceschanged = loadVoices;
     }, []);
 
-    // Function to make the bot speak
     const speak = (text) => {
         if (!selectedVoice) return;
-
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.voice = selectedVoice; // Set the selected voice
-        utterance.pitch = 1;
-        utterance.rate = 1;
+        utterance.voice = selectedVoice;
         speechSynthesis.speak(utterance);
     };
 
-    // Handle user message submission (either from speech or text)
     const handleUserMessage = async (message) => {
         if (message.trim() === "") return;
-
+        let userInput = message;
+        setUserMessage("");
         setMessages((prev) => [...prev, { sender: "user", content: message }]);
         setBotState("think");
 
         try {
-            const response = await axios.post("http://localhost:3000/api/model", {
-                user: message,
-            });
+            const response = await axios.post("http://localhost:3000/api/model", { user: userInput });
             const botResponse = response.data.response;
             setMessages((prev) => [...prev, { sender: "bot", content: botResponse }]);
             setBotState("roast");
-
-            // Make the bot speak the response
             speak(botResponse);
         } catch (error) {
             console.error("Error communicating with the model:", error);
@@ -76,81 +64,68 @@ function App() {
             ]);
         } finally {
             setBotState("idle");
-            setUserMessage(""); // Clear the text box after the message is handled
+            setUserMessage("");
         }
     };
 
-    // Start listening to the user
     const startListening = () => {
-        if (isListening) return; // If already listening, do nothing
+        if (isListening) return;
         setIsListening(true);
         setBotState("listen");
-        recognition.start(); // Start speech recognition
+        recognition.start();
     };
 
-    // Stop listening when speech is detected
     recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        setUserMessage(transcript); // Set the message from speech
-        handleUserMessage(transcript); // Handle the speech message
+        setUserMessage(transcript);
+        handleUserMessage(transcript);
         setIsListening(false);
         setBotState("idle");
     };
 
-    // Handle errors with speech recognition
     recognition.onerror = (event) => {
         console.error("Speech recognition error:", event.error);
         setIsListening(false);
         setBotState("idle");
     };
 
-    // Handle when recognition ends
     recognition.onend = () => {
         setIsListening(false);
         setBotState("idle");
-
-        // If autoSpeak is enabled, restart listening after a pause
         if (autoSpeakEnabled) {
             startListening();
         }
     };
 
-    // Handle key press event (Enter key)
     const handleKeyPress = (e) => {
         if (e.key === "Enter") {
             handleUserMessage(userMessage);
         }
     };
 
-    // Toggle the minimize button
     const toggleMinimize = () => {
         setIsMinimized((prev) => !prev);
     };
 
-    // Toggle the Auto Speak button
     const toggleAutoSpeak = () => {
-        if(autoSpeakEnabled)
-            window.location.reload();
+        if (autoSpeakEnabled) window.location.reload();
         setAutoSpeakEnabled((prev) => !prev);
     };
 
-    // Automatically start listening if Auto Speak is enabled
     useEffect(() => {
         if (autoSpeakEnabled) {
-            startListening(); // Start listening when Auto Speak is enabled
+            startListening();
         } else {
-            recognition.stop(); // Stop recognition if Auto Speak is disabled
+            recognition.stop();
         }
     }, [autoSpeakEnabled]);
 
-    // Scroll to the bottom after messages change
     useEffect(() => {
         if (chatBoxRef.current) {
             chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
         }
-    }, [messages]); // Runs whenever messages change
+    }, [messages]);
 
-    // Render bot animation based on state
     const renderBotAnimation = () => {
         switch (botState) {
             case "idle":
@@ -168,65 +143,94 @@ function App() {
 
     return (
         <div className="App">
-            <div className="content-container">
-                <div className="bot-image-container">{renderBotAnimation()}</div>
-                <div
-                    className={`chat-container ${isMinimized ? "chat-container-minimized" : "chat-container-expanded"}`}
-                >
-                    <div className="chat-container-header" onClick={toggleMinimize}>
-                        <span>Roast Royale: Clash, Burn, Dominate!</span>
-                        <div>
-                            <button className="minimize-btn">
-                                {isMinimized ? "Expand" : "Minimize"}
-                            </button>
-                            <button className="auto-speak-btn" onClick={toggleAutoSpeak}>
-                                {autoSpeakEnabled ? "Auto Speak: On" : "Turn On Auto Speak"}
-                            </button>
-                            {/* Dropdown for voice selection */}
-                            <select
-                                value={selectedVoice?.name || ""}
-                                onChange={(e) => {
-                                    const selected = voices.find((voice) => voice.name === e.target.value);
-                                    setSelectedVoice(selected);
-                                }}
-                            >
-                                {voices.map((voice) => (
-                                    <option key={voice.name} value={voice.name}>
-                                        {voice.name} - {voice.lang}
-                                    </option>
-                                ))}
-                            </select>
+            {autoSpeakEnabled && (
+                <div className="call-interface">
+                    <div className="call-header">
+                        <button className="end-call-button" onClick={toggleAutoSpeak}>
+                            <FaPhoneAlt size={40} />
+                        </button>
+                    </div>
+                    <div className="call-body">
+                        <div className="bot-animation">{renderBotAnimation()}</div>
+                        <div className="call-status">
+                            {botState === "listen" && <p>Listening...</p>}
+                            {botState === "think" && <p>Thinking...</p>}
+                            {botState === "roast" && <p>Responding...</p>}
+                            {botState === "idle" && <p>Idle...</p>}
                         </div>
                     </div>
-                    {!isMinimized && (
-                        <div className="chat-box" ref={chatBoxRef}>
-                            {messages.map((msg, index) => (
-                                <div
-                                    key={index}
-                                    className={`chat-message ${msg.sender === "user" ? "user" : "bot"}`}
-                                >
-                                    {msg.content}
+                </div>
+            )}
+            <div className="app-wrapper">
+                <div className="content-container">
+                    <div className="bot-image-container">{renderBotAnimation()}</div>
+                    <div
+                        className={`chat-container ${
+                            isMinimized ? "chat-container-minimized" : "chat-container-expanded"
+                        }`}
+                    >
+                        <div className="chat-container-header">
+                            <span>Roast Royale: Clash, Burn, Dominate!</span>
+                            <div className="header-buttons">
+                                <div className="utility-buttons">
+                                    <button className="auto-speak" onClick={toggleAutoSpeak}>
+                                        <FaPhoneAlt size={20} />
+                                    </button>
+                                    <button onClick={toggleMinimize}>
+                                        <FaWindowMinimize size={20} />
+                                    </button>
                                 </div>
-                            ))}
+                                <select
+                                    className="voice-select"
+                                    value={selectedVoice?.name || ""}
+                                    onChange={(e) =>
+                                        setSelectedVoice(
+                                            voices.find((voice) => voice.name === e.target.value)
+                                        )
+                                    }
+                                >
+                                    {voices.map((voice) => (
+                                        <option key={voice.name} value={voice.name}>
+                                            {voice.name} - {voice.lang}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                    )}
-                    {!isMinimized && (
-                        <div className="input-box">
-                            <input
-                                type="text"
-                                value={userMessage}
-                                onChange={(e) => setUserMessage(e.target.value)}
-                                onKeyDown={handleKeyPress}
-                                placeholder="Type your message here..."
-                            />
-                            <button onClick={() => handleUserMessage(userMessage)}>Send</button>
-                            {!autoSpeakEnabled && (
-                                <button onClick={startListening} disabled={isListening}>
-                                    {isListening ? "Listening..." : "Speak to AI"}
+                        {!isMinimized && (
+                            <div className="chat-box" ref={chatBoxRef}>
+                                {messages.map((msg, index) => (
+                                    <div
+                                        key={index}
+                                        className={`chat-message ${
+                                            msg.sender === "user" ? "user" : "bot"
+                                        }`}
+                                    >
+                                        {msg.content}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {!isMinimized && (
+                            <div className="input-box">
+                                <input
+                                    type="text"
+                                    value={userMessage}
+                                    onChange={(e) => setUserMessage(e.target.value)}
+                                    onKeyDown={handleKeyPress}
+                                    placeholder="Type your message here..."
+                                />
+                                <button onClick={() => handleUserMessage(userMessage)}>
+                                    <FaPaperPlane size={20} />
                                 </button>
-                            )}
-                        </div>
-                    )}
+                                {!autoSpeakEnabled && (
+                                    <button onClick={startListening} disabled={isListening}>
+                                        <FaMicrophone size={20} />
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
