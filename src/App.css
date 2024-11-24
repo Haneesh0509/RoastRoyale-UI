@@ -332,148 +332,75 @@ button img {
     font-size: 18px;
     margin-top: 20px;
 }
-/* Global reset and body styles remain the same */
 
-/* Adjust wrapper for smaller screens */
+/* General Layout for Small Screens */
 @media (max-width: 768px) {
-    .app-wrapper {
-        height: auto;
-        padding: 20px;
-    }
-
     .content-container {
-        flex-direction: column;
-        width: 100%;
-        height: auto;
+        flex-direction: column; /* Stack items vertically */
+        padding: 10px; /* Add padding for better spacing */
+        width: 80vw;
     }
 
-    .bot-image-container {
-        width: 100%;
+    .header {
+        display: flex;
+        flex-direction: column; /* Stack header items vertically */
+        align-items: center; /* Center align items */
+        gap: 10px; /* Add space between elements */
         padding: 10px;
     }
 
-    .bot-image-container img {
-        max-width: 80%;
-        max-height: 150px;
+    .header-buttons {
+        display: flex;
+        flex-direction: row; /* Place buttons side by side */
+        justify-content: center;
+        gap: 15px; /* Space between buttons */
+    }
+
+    .dropdown {
+        width: 100%; /* Ensure dropdown takes full width */
+        max-width: 300px; /* Set max width for usability */
     }
 
     .chat-container {
-        width: 100%;
-        padding: 8px;
-    }
-
-    .chat-container-header {
-        font-size: 1.2rem;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .voice-select {
-        width: 100%;
-        margin: 5px 0 10px;
-    }
-}
-
-/* For mobile screens (max-width: 480px) */
-@media (max-width: 480px) {
-    .app-wrapper {
-        padding: 10px;
-    }
-
-    .content-container {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .bot-image-container {
-        width: 100%;
-        padding: 5px;
-        background: none;
-    }
-
-    .bot-image-container img {
-        max-width: 100%;
-        max-height: 120px;
-    }
-
-    .chat-container {
-        width: 100%;
-        padding: 8px;
-        border-left: none;
-        border-top: 2px solid #ff3e3e;
-    }
-
-    .chat-container-header {
-        font-size: 1rem;
-    }
-
-    .chat-box {
-        max-height: 50vh;
-        overflow-y: scroll;
+        flex: 1; /* Allow chat container to grow dynamically */
+        height: auto; /* Let height adjust dynamically */
+        margin-top: 10px;
+        overflow-y: auto; /* Enable scrolling for overflow */
+        width: 75vw;
     }
 
     .input-box {
-        flex-direction: column;
-        gap: 5px;
+        width: 100%; /* Full width on small screens */
+        padding: 10px;
     }
 
-    input[type="text"] {
-        font-size: 0.9rem;
-    }
-
-    button {
-        width: 36px;
-        height: 36px;
-    }
-
-    .call-interface {
-        padding: 20px;
+    .send-button {
+        margin-top: 10px;
     }
 
     .end-call-button {
-        width: 50px;
-        height: 50px;
+        width: 15vw;
+        height: 15vw;
+        position: absolute;
+        right: 47vw;
     }
 }
 
-/* For tablets (between 480px and 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-    .chat-container-header {
-        font-size: 1.3rem;
+/* Adjust Layout for Extra Small Screens (e.g., Phones) */
+@media (max-width: 480px) {
+    .header {
+        font-size: 14px; /* Reduce text size for smaller screens */
     }
 
-    .bot-image-container img {
-        max-width: 100%;
-        max-height: 200px;
+    .header-buttons {
+        gap: 10px; /* Reduce spacing between buttons */
     }
 
-    .voice-select {
-        width: auto;
-    }
-
-    .chat-box {
-        max-height: 60vh;
-    }
-}
-
-/* Specific adjustments for portrait and landscape orientations */
-@media (orientation: portrait) {
-    .content-container {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .bot-image-container img {
-        max-height: 150px;
-    }
-}
-
-@media (orientation: landscape) {
-    .content-container {
-        flex-direction: row;
+    .dropdown {
+        width: 100%; /* Full width on small screens */
     }
 
     .chat-container {
-        padding: 12px;
+        padding: 5px; /* Add padding for better spacing */
     }
 }

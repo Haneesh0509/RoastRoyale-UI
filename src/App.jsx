@@ -51,7 +51,7 @@ function App() {
         setBotState("think");
 
         try {
-            const response = await axios.post("http://localhost:3000/api/model", { user: userInput });
+            const response = await axios.post("http://192.168.5.5:3000/api/model", { user: userInput });
             const botResponse = response.data.response;
             setMessages((prev) => [...prev, { sender: "bot", content: botResponse }]);
             setBotState("roast");
